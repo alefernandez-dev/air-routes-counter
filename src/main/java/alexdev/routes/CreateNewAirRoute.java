@@ -1,5 +1,5 @@
 package alexdev.routes;
 
 public interface CreateNewAirRoute {
-    boolean create(AirRoute airRoute);
+    void create(AirRoute airRoute) throws AirRouteAlreadyExistsException;
 }

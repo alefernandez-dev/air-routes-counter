@@ -4,48 +4,79 @@ import alexdev.routes.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class DefaultAirRouteServiceTest {
 
-    AirRoute airRoute;
+    @Mock
+    AirRoutes repositoryMock;
+
+    @InjectMocks
     DefaultAirRouteService service;
+
+    AirRoute airRoute;
 
     @BeforeEach
     void setUp() {
         airRoute = AirRoute.create(RouteCode.C_D);
-        service = new DefaultAirRouteService(new InMemoryAirRouteRepository());
-
     }
 
     @Test
-    void saveNewAirRoute() {
-        assertTrue(service.create(airRoute));
-        assertFalse(service.create(airRoute));
+    void saveNewAirRouteSuccessfully() {
+
+        when(repositoryMock.existsByRouteCode(airRoute.getCode())).thenReturn(false);
+        assertDoesNotThrow(() -> service.create(airRoute));
+    }
+
+    @Test
+    void saveRepeatedAirRoute() {
+
+        when(repositoryMock.existsByRouteCode(airRoute.getCode())).thenReturn(true);
+        var e = assertThrowsExactly(AirRouteAlreadyExistsException.class, () -> service.create(airRoute));
+        System.out.println("exception message = " + e.getMessage());
     }
 
     @Test
     void findAirRouteByAirCode() {
-        service.create(airRoute);
-        var result = Assertions.assertDoesNotThrow(() -> service.getByRouteCode(RouteCode.C_D));
-        System.out.println(result);
-        assertThrowsExactly(AirRouteNotFoundException.class, () -> service.getByRouteCode(RouteCode.A_D));
+        when(repositoryMock.findAirRouteByRouteCode(airRoute.getCode())).thenReturn(Optional.of(airRoute));
+        var result = Assertions.assertDoesNotThrow(() -> service.getByRouteCode(airRoute.getCode()));
+        System.out.println("air route = " + result);
+    }
+
+    @Test
+    void findAirRouteByAirCodeWhenAirRouteDoesNotExists() {
+        when(repositoryMock.findAirRouteByRouteCode(airRoute.getCode())).thenReturn(Optional.empty());
+        var e = assertThrowsExactly(AirRouteNotFoundException.class, () -> service.getByRouteCode(airRoute.getCode()));
+        System.out.println("exception message = " + e.getMessage());
     }
 
     @Test
     void countAirRoute() {
-        service.create(airRoute);
-        var result01 = service.getByRouteCode(airRoute.getCode());
 
-        assertEquals(0, result01.getCounter());
-        assertNull(result01.getLastView());
+        when(repositoryMock.findAirRouteByRouteCode(airRoute.getCode())).thenReturn(Optional.of(airRoute));
 
-        service.counter(airRoute.getCode());
-        var result02 = service.getByRouteCode(airRoute.getCode());
+        assertDoesNotThrow(() -> service.counter(airRoute.getCode()));
+        assertEquals(1, airRoute.getCounter());
+        assertNotNull(airRoute.getLastView());
+        System.out.println(airRoute);
+    }
 
-        assertEquals(1, result02.getCounter());
-        assertNotNull(result02.getLastView());
+    @Test
+    void countAirRouteWhenAirRouteDoesNotExists() {
+
+        when(repositoryMock.findAirRouteByRouteCode(airRoute.getCode())).thenReturn(Optional.empty());
+
+        var e = assertThrowsExactly(AirRouteNotFoundException.class, () -> service.counter(airRoute.getCode()));
+        System.out.println("exception message = " + e.getMessage());
 
     }
 

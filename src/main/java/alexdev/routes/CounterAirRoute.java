@@ -1,5 +1,5 @@
 package alexdev.routes;
 
 public interface CounterAirRoute {
-    boolean counter(RouteCode routeCode) throws AirRouteNotFoundException;
+    void counter(RouteCode routeCode) throws AirRouteNotFoundException;
 }

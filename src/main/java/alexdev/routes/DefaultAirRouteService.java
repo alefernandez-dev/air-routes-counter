@@ -9,7 +9,7 @@ public class DefaultAirRouteService implements CreateNewAirRoute, CounterAirRout
     }
 
     @Override
-    public boolean counter(RouteCode routeCode) throws AirRouteNotFoundException{
+    public void counter(RouteCode routeCode) throws AirRouteNotFoundException{
 
         var airRoute = airRouteRepository
                 .findAirRouteByRouteCode(routeCode)
@@ -18,7 +18,7 @@ public class DefaultAirRouteService implements CreateNewAirRoute, CounterAirRout
         airRoute.count();
         airRoute.addLastView();
 
-        return airRouteRepository.save(airRoute);
+        airRouteRepository.save(airRoute);
     }
 
     @Override
@@ -29,7 +29,12 @@ public class DefaultAirRouteService implements CreateNewAirRoute, CounterAirRout
     }
 
     @Override
-    public boolean create(AirRoute airRoute) {
-        return airRouteRepository.save(airRoute);
+    public void create(AirRoute airRoute) throws AirRouteAlreadyExistsException{
+
+        if (airRouteRepository.existsByRouteCode(airRoute.getCode())) {
+            throw new AirRouteAlreadyExistsException("route code '"+ airRoute.getCode() +"' already exists");
+        }
+
+        airRouteRepository.save(airRoute);
     }
 }

@@ -14,7 +14,12 @@ public class InMemoryAirRouteRepository implements AirRoutes {
     }
 
     @Override
-    public boolean save(AirRoute airRoute) {
-        return airRouteMap.putIfAbsent(airRoute.getCode(), airRoute) == null;
+    public boolean existsByRouteCode(RouteCode routeCode) {
+        return airRouteMap.containsKey(routeCode);
+    }
+
+    @Override
+    public void save(AirRoute airRoute) {
+        airRouteMap.put(airRoute.getCode(), airRoute);
     }
 }
