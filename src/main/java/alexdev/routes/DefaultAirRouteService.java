@@ -9,7 +9,7 @@ public class DefaultAirRouteService implements CreateNewAirRoute, CounterAirRout
     }
 
     @Override
-    public boolean counter(RouteCode routeCode) {
+    public boolean counter(RouteCode routeCode) throws AirRouteNotFoundException{
 
         var airRoute = airRouteRepository
                 .findAirRouteByRouteCode(routeCode)
@@ -22,7 +22,7 @@ public class DefaultAirRouteService implements CreateNewAirRoute, CounterAirRout
     }
 
     @Override
-    public AirRoute getByRouteCode(RouteCode routeCode) {
+    public AirRoute getByRouteCode(RouteCode routeCode) throws AirRouteNotFoundException{
         return airRouteRepository
                 .findAirRouteByRouteCode(routeCode)
                 .orElseThrow(() -> new AirRouteNotFoundException("air route '"+ routeCode +"' not found"));
